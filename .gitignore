@@ -1,2 +1,12 @@
 # Ignore env
 .env
+
+# Pycharm files
+.idea/
+
+# Ignore lokal dv
+db.sqlite3
+
+# Ignore unused setting files
+processdemodata/settings_google.py
+processdemodata/settings_test.py
