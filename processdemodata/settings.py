@@ -149,6 +149,5 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://cra-cloud-run-tidx6c6lxa-uc.a.run.app/"
+    "http://localhost:3000"
 ]
