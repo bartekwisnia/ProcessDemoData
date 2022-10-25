@@ -24,7 +24,7 @@ env_file = os.path.join(BASE_DIR, ".env")
 SECRET_KEY = config("SECRET_KEY")
 DEBUG = config("DEBUG")
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['processdemodata.wisniewskicodind.atthost24.pl']
 
 
 # Application definition
