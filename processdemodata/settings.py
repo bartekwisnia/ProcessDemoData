@@ -11,61 +11,20 @@ https://docs.djangoproject.com/en/4.0/ref/settings/
 """
 
 from pathlib import Path
+from decouple import config
+
 import os
-import io
-from urllib.parse import urlparse
-
 import environ
-import google.auth
-from google.cloud import secretmanager
-
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# [START cloudrun_django_secret_config]
-# SECURITY WARNING: don't run with debug turned on in production!
-# Change this to "False" when you are ready for production
 env = environ.Env(DEBUG=(bool, True))
 env_file = os.path.join(BASE_DIR, ".env")
-print(os.environ.get("GOOGLE_CLOUD_PROJECT", None))
-print(os.environ.get("USE_CLOUD_SQL_AUTH_PROXY", None))
-# Attempt to load the Project ID into the environment, safely failing on error.
-try:
-    _, os.environ["GOOGLE_CLOUD_PROJECT"] = google.auth.default()
-except google.auth.exceptions.DefaultCredentialsError:
-    pass
 
-if os.path.isfile(env_file):
-    # Use a local secret file, if provided
-    env.read_env(env_file)
-elif os.environ.get("GOOGLE_CLOUD_PROJECT", None):
-    # Pull secrets from Secret Manager
-    project_id = os.environ.get("GOOGLE_CLOUD_PROJECT")
-    client = secretmanager.SecretManagerServiceClient()
-    settings_name = os.environ.get("SETTINGS_NAME", "django_settings")
-    name = f"projects/{project_id}/secrets/{settings_name}/versions/latest"
-    payload = client.access_secret_version(name=name).payload.data.decode("UTF-8")
-    env.read_env(io.StringIO(payload))
-else:
-    raise Exception("No local .env or GOOGLE_CLOUD_PROJECT detected. No secrets found.")
-# [END cloudrun_django_secret_config]
+SECRET_KEY = config("SECRET_KEY")
+DEBUG = config("DEBUG")
 
-SECRET_KEY = env("SECRET_KEY")
-DEBUG = env("DEBUG")
-
-# [START cloudrun_django_csrf]
-# SECURITY WARNING: It's recommended that you use this when
-# running in production. The URL will be known once you first deploy
-# to Cloud Run. This code takes the URL and converts it to both these settings formats.
-CLOUDRUN_SERVICE_URL = env("CLOUDRUN_SERVICE_URL", default=None)
-if CLOUDRUN_SERVICE_URL:
-    ALLOWED_HOSTS = [urlparse(CLOUDRUN_SERVICE_URL).netloc]
-    CSRF_TRUSTED_ORIGINS = [CLOUDRUN_SERVICE_URL]
-    SECURE_SSL_REDIRECT = True
-    SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
-else:
-    ALLOWED_HOSTS = ["*"]
-# [END cloudrun_django_csrf]
+ALLOWED_HOSTS = []
 
 
 # Application definition
@@ -122,38 +81,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'processdemodata.wsgi.application'
 
-
-# [START db_setup]
-if os.getenv('GAE_APPLICATION', None):
-    # Running on production App Engine, so connect to Google Cloud SQL using
-    # the unix socket at /cloudsql/<your-cloudsql-connection string>
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'HOST': '/cloudsql/earnest-runner-354720:europe-central2:processdemodb',
-            'USER': 'processdemodbuser',
-            'PASSWORD': env.str("DB_PASS", ""),
-            'NAME': 'processdemodjangodb',
-        }
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': config("DB_NAME"),
+        'USER': config("DB_USER"),
+        'PASSWORD': config("DB_PASS"),
+        'HOST': config("DB_HOST"),   # Or an IP Address that your DB is hosted on
+        'PORT': config("DB_PORT"),
     }
-else:
-    # Running locally so connect to either a local MySQL instance or connect
-    # to Cloud SQL via the proxy.  To start the proxy via command line:
-    #    cloud_sql_proxy.exe -instances="earnest-runner-354720:europe-central2:processdemodb"=tcp:5432
-    # See https://cloud.google.com/sql/docs/mysql-connect-proxy
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'HOST': '127.0.0.1',
-            'PORT': '5432',
-            'NAME': 'processdemodjangodb',
-            'USER': 'processdemodbuser',
-            'PASSWORD': env.str("DB_PASS", ""),
-        }
-    }
-# [END db_setup]
-
-
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -195,8 +132,6 @@ STATIC_URL = 'static/'
 STATIC_ROOT = 'static'
 
 # [END cloudrun_django_static_config]
-
-
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
