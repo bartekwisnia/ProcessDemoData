@@ -4,8 +4,8 @@ Backend in Django for Process Demo Project. It stores users, users' factory simu
 
 ## Description
 
-Process Demo project is a simple simulation of a process automation plant. User can design its plant/factory made of
-tanks, pipes, valves etc. use prepared automated functions. The plant is simulates media flow, levels, temperatures,
+Process Demo project is a simple simulation of a process industry plant. User can design its plant/factory made of
+tanks, pipes, valves etc. use prepared automated functions. The plant simulates media flow, levels, temperatures,
 pressure etc.
 
 Project was done as a demo to my portfolio to show my programming skills and as I am an automation engineer I have
